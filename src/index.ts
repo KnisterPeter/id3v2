@@ -1,4 +1,3 @@
-import { resolve } from 'path';
 import { readFileSync } from 'fs';
 import * as iconv from 'iconv-lite';
 
@@ -51,7 +50,7 @@ const unsyncedLength = (input: number) =>
 
 const isID3 = (buffer: Buffer) => buffer.slice(ID3HeaderOffsets.MAGIC, ID3HeaderOffsets.MAGIC + 3).toString() === 'ID3';
 const isID3v24 = (buffer: Buffer) => buffer.readIntBE(ID3HeaderOffsets.MAJOR_VERSION, 1) <= 4;
-const getID3HeaderFlags = (buffer: Buffer) => {
+const getID3HeaderFlags = (buffer: Buffer): IHeaderFlags => {
   const flags = buffer.readIntBE(ID3HeaderOffsets.FLAGS, 1);
   return {
     unsynchronisation: hasFlag(flags, ID3HeaderFlags.Unsynchronisation),
@@ -61,6 +60,7 @@ const getID3HeaderFlags = (buffer: Buffer) => {
     others: (flags & ID3HeaderFlags.Others) !== 0
   };
 };
+const isPadding = (buffer: Buffer) => buffer.readUInt32BE(0) === 0;
 
 const getID3FrameFlags = (buffer: Buffer) => {
   const flags = buffer.readInt16BE(ID3FrameOffsets.FLAGS);
@@ -73,30 +73,71 @@ const getID3FrameFlags = (buffer: Buffer) => {
   };
 };
 
-const knownFrames = ['TCON', 'TRCK', 'TALB', 'TIT2', 'TDRC', 'TPE1'];
-
 const getFrameData = (buffer: Buffer) => {
   const name = buffer.slice(ID3FrameOffsets.ID, ID3FrameOffsets.ID + 4).toString();
   const length = unsyncedLength(buffer.readInt32BE(ID3FrameOffsets.SIZE));
   let encoding: string;
-  let data: string;
-  if (knownFrames.indexOf(name) > -1) {
-    switch (buffer.readInt8(ID3FrameOffsets.END_OF_HEADER)) {
-      case 0:
-        encoding = 'ISO-8859-1';
-        break;
-      case 1:
-        encoding = 'UTF-16';
-        break;
-      case 2:
-        encoding = 'UTF-16';
-        break;
-      case 3:
-        encoding = 'UTF-8';
-        break;
-    }
-    data =
-      iconv.decode(buffer.slice(ID3FrameOffsets.END_OF_HEADER + 1, ID3FrameOffsets.END_OF_HEADER + length), encoding);
+  switch (buffer.readInt8(ID3FrameOffsets.END_OF_HEADER)) {
+    case 0:
+      encoding = 'ISO-8859-1';
+      break;
+    case 1:
+      encoding = 'UTF-16';
+      break;
+    case 2:
+      encoding = 'UTF-16';
+      break;
+    case 3:
+      encoding = 'UTF-8';
+      break;
+  }
+  let data: any;
+  switch (name) {
+    case 'TXXX': {
+        const idx = buffer.indexOf(0, ID3FrameOffsets.END_OF_HEADER + 1);
+        const description = iconv.decode(buffer.slice(ID3FrameOffsets.END_OF_HEADER + 1, idx), encoding);
+        data = {
+          description,
+          value: iconv.decode(buffer.slice(ID3FrameOffsets.END_OF_HEADER + 1 + description.length + 1,
+            ID3FrameOffsets.END_OF_HEADER + length), encoding)
+        };
+      }
+      break;
+    case 'TPOS':
+    case 'TLEN':
+    case 'TYER':
+    case 'TSSE':
+    case 'TCON':
+    case 'TRCK':
+    case 'TALB':
+    case 'TIT2':
+    case 'TDRC':
+    case 'TPE1':
+    case 'TPE2':
+      data =
+        iconv.decode(buffer.slice(ID3FrameOffsets.END_OF_HEADER + 1, ID3FrameOffsets.END_OF_HEADER + length), encoding);
+      break;
+    case 'POPM': {
+        const idx = buffer.indexOf(0, ID3FrameOffsets.END_OF_HEADER);
+        const email = buffer.slice(ID3FrameOffsets.END_OF_HEADER, idx).toString();
+        const rating = buffer.readUInt8(idx + 1);
+        // TODO: counter
+        data = {
+          email,
+          rating,
+          counter: undefined
+        };
+      }
+      break;
+    case 'UFID': {
+        const idx = buffer.indexOf(0, ID3FrameOffsets.END_OF_HEADER);
+        const ownerIdentifier = buffer.slice(ID3FrameOffsets.END_OF_HEADER, idx).toString();
+        data = {
+          ownerIdentifier,
+          identifier: buffer.slice(ID3FrameOffsets.END_OF_HEADER + ownerIdentifier.length, length)
+        };
+      }
+      break;
   }
   return {
     name,
@@ -105,6 +146,14 @@ const getFrameData = (buffer: Buffer) => {
     data
   };
 };
+
+interface IHeaderFlags {
+  unsynchronisation: boolean;
+  extendedHeader: boolean;
+  experimental: boolean;
+  footer: boolean;
+  others: boolean;
+}
 
 interface IFrameData {
   name: string;
@@ -116,25 +165,27 @@ interface IFrameData {
     unsynchronisation: boolean;
     dataLengthIndicator: boolean;
   };
-  data: string;
+  data: any;
 }
 
 export class ID3v2 {
 
-  private frames: {[name: string]: IFrameData} = {};
+  private flags: IHeaderFlags;
+
+  private frames: {[name: string]: IFrameData|IFrameData[]} = {};
 
   constructor(path: string) {
     const buffer = readFileSync(path);
     if (!isID3(buffer) || !isID3v24(buffer)) {
       return;
     }
-    const flags = getID3HeaderFlags(buffer);
-    if (flags.others) {
+    this.flags = getID3HeaderFlags(buffer);
+    if (this.flags.others) {
       return;
     }
     const size = unsyncedLength(buffer.readInt32BE(ID3HeaderOffsets.SIZE));
     let startOfFrame = ID3HeaderOffsets.END_OF_HEADER;
-    if (flags.extendedHeader) {
+    if (this.flags.extendedHeader) {
       const extendedHeaderBuffer = buffer.slice(ID3HeaderOffsets.END_OF_HEADER);
       const extendedHeaderSize = unsyncedLength(extendedHeaderBuffer.readInt32BE(ID3ExtendedHeaderOffsets.SIZE));
       startOfFrame += extendedHeaderSize;
@@ -142,14 +193,32 @@ export class ID3v2 {
 
     while (startOfFrame < size) {
       const frameBuffer = buffer.slice(startOfFrame);
+      if (isPadding(frameBuffer)) {
+        break;
+      }
       const frame = getFrameData(frameBuffer);
-      this.frames[frame.name] = frame;
+      if (this.frames[frame.name]) {
+        if (!Array.isArray(this.frames[frame.name])) {
+          this.frames[frame.name] = [this.frames[frame.name] as IFrameData];
+        }
+        (this.frames[frame.name] as IFrameData[]).push(frame);
+      } else {
+        this.frames[frame.name] = frame;
+      }
       startOfFrame += ID3FrameOffsets.END_OF_HEADER + frame.length;
     }
   }
 
-  private getFrameData(name: string): string {
-    return this.frames[name] ? this.frames[name].data : undefined;
+  private getFrameData(name: string): any {
+    const frame = this.frames[name];
+    if (Array.isArray(frame)) {
+      return (frame as IFrameData[]).map(entry => entry.data);
+    }
+    return frame ? (frame as IFrameData).data : undefined;
+  }
+
+  get ufid(): {ownerIdentifier: string, identifier: Buffer} {
+    return this.getFrameData('UFID');
   }
 
   get genre(): string {
@@ -169,11 +238,23 @@ export class ID3v2 {
   }
 
   get year(): string {
-    return this.getFrameData('TDRC');
+    return this.getFrameData('TDRC') || this.getFrameData('TYER');
   }
 
   get artist(): string {
     return this.getFrameData('TPE1');
+  }
+
+  get popularimeter(): {email: string, rating: number, counter: number} {
+    return this.getFrameData('POPM');
+  }
+
+  get length(): string {
+    return this.getFrameData('TLEN');
+  }
+
+  get set(): string {
+    return this.getFrameData('TPOS');
   }
 
 }
