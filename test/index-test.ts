@@ -21,7 +21,7 @@ describe('An id3v2 tag', () => {
     });
 
     it('should contain id3 tag data', () => {
-      assert.equal(tag.genre, 'genre');
+      assert.equal(tag.genre, 'Blues');
       assert.equal(tag.track, '01');
       assert.equal(tag.album, 'album-title');
       assert.equal(tag.title, 'title');
