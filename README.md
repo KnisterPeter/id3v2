@@ -10,9 +10,10 @@
 
 Read ID3v2 metadata.
 
-# Usage
+## Usage
 
-## Installation
+### Installation
+
 Install as npm package:
 
 ```sh
@@ -25,7 +26,7 @@ Install latest development version:
 npm install id3v2@next --save
 ```
 
-## API
+### API
 
 ```js
 import { ID3v2 } from 'id3v2';
