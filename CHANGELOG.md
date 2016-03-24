@@ -1,5 +1,15 @@
+<a name="0.2.1"></a>
+## [0.2.1](https://github.com/knisterpeter/id3v2/compare/v0.2.0...v0.2.1) (2016-03-24)
+
+
+### Bug Fixes
+
+* Removes test file ([1ff45fb](https://github.com/knisterpeter/id3v2/commit/1ff45fb))
+
+
+
 <a name="0.2.0"></a>
-# 0.2.0 (2016-03-24)
+# [0.2.0](https://github.com/knisterpeter/id3v2/compare/9a314e1...v0.2.0) (2016-03-24)
 
 
 ### Features

@@ -1,6 +1,6 @@
 {
   "name": "id3v2",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Reads ID3v2 metadata",
   "main": "dist/src/index.js",
   "files": [
