@@ -257,4 +257,8 @@ export class ID3v2 {
     return this.getFrameData('TPOS');
   }
 
+  get text(): {description: string, value: string}|{description: string, value: string}[] {
+    return this.getFrameData('TXXX');
+  }
+
 }

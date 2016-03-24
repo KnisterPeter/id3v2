@@ -22,11 +22,21 @@ describe('An id3v2 tag', () => {
 
     it('should contain id3 tag data', () => {
       assert.equal(tag.genre, 'genre');
-      assert.equal(tag.track, 'track');
+      assert.equal(tag.track, '01');
       assert.equal(tag.album, 'album-title');
       assert.equal(tag.title, 'title');
-      assert.equal(tag.year, 'year');
+      assert.equal(tag.year, '2000');
       assert.equal(tag.artist, 'artist');
+      assert.deepEqual(tag.text, [{
+          description: 'descr',
+          value: 'value'
+        }, {
+          description: 'descr2',
+          value: 'value2'
+        }]);
+      assert.equal(tag.set, '1');
+      assert.equal(tag.length, '12345');
+      assert.deepEqual(tag.popularimeter, {email: 'id', rating: 64, counter: undefined});
     });
   });
 });
