@@ -60,7 +60,7 @@ const unsyncedLength = (input: number) =>
 
 const isID3 = (buffer: Buffer) => buffer.slice(ID3HeaderOffsets.MAGIC, ID3HeaderOffsets.MAGIC + 3).toString() === 'ID3';
 const isID3v24 = (buffer: Buffer) => buffer.readIntBE(ID3HeaderOffsets.MAJOR_VERSION, 1) <= 4;
-const getID3HeaderFlags = (buffer: Buffer): IHeaderFlags => {
+const getID3HeaderFlags = (buffer: Buffer): HeaderFlags => {
   const flags = buffer.readIntBE(ID3HeaderOffsets.FLAGS, 1);
   return {
     unsynchronisation: hasFlag(flags, ID3HeaderFlags.Unsynchronisation),
@@ -83,6 +83,7 @@ const getID3FrameFlags = (buffer: Buffer) => {
   };
 };
 
+// tslint:disable-next-line cyclomatic-complexity
 const getFrameData = (buffer: Buffer) => {
   const name = buffer.slice(ID3FrameOffsets.ID, ID3FrameOffsets.ID + 4).toString();
   const length = unsyncedLength(buffer.readInt32BE(ID3FrameOffsets.SIZE));
@@ -157,7 +158,7 @@ const getFrameData = (buffer: Buffer) => {
   };
 };
 
-interface IHeaderFlags {
+interface HeaderFlags {
   unsynchronisation: boolean;
   extendedHeader: boolean;
   experimental: boolean;
@@ -165,7 +166,7 @@ interface IHeaderFlags {
   others: boolean;
 }
 
-interface IFrameData {
+interface FrameData {
   name: string;
   length: number;
   flags: {
@@ -180,10 +181,11 @@ interface IFrameData {
 
 export class ID3v2 {
 
-  private flags: IHeaderFlags;
+  private flags: HeaderFlags;
 
-  private frames: {[name: string]: IFrameData|IFrameData[]} = {};
+  private frames: {[name: string]: FrameData|FrameData[]} = {};
 
+  // tslint:disable-next-line cyclomatic-complexity
   constructor(path: string) {
     const buffer = readFileSync(path);
     if (!isID3(buffer) || !isID3v24(buffer)) {
@@ -209,9 +211,9 @@ export class ID3v2 {
       const frame = getFrameData(frameBuffer);
       if (this.frames[frame.name]) {
         if (!Array.isArray(this.frames[frame.name])) {
-          this.frames[frame.name] = [this.frames[frame.name] as IFrameData];
+          this.frames[frame.name] = [this.frames[frame.name] as FrameData];
         }
-        (this.frames[frame.name] as IFrameData[]).push(frame);
+        (this.frames[frame.name] as FrameData[]).push(frame);
       } else {
         this.frames[frame.name] = frame;
       }
@@ -222,9 +224,9 @@ export class ID3v2 {
   private getFrameData(name: string): any {
     const frame = this.frames[name];
     if (Array.isArray(frame)) {
-      return (frame as IFrameData[]).map(entry => entry.data);
+      return (frame as FrameData[]).map(entry => entry.data);
     }
-    return frame ? (frame as IFrameData).data : undefined;
+    return frame ? (frame as FrameData).data : undefined;
   }
 
   get ufid(): {ownerIdentifier: string, identifier: Buffer} {
