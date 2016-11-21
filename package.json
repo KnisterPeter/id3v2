@@ -57,7 +57,7 @@
     "typescript": "2.0.10"
   },
   "dependencies": {
-    "iconv-lite": "0.4.14"
+    "iconv-lite": "0.4.15"
   },
   "publishConfig": {
     "tag": "next"
