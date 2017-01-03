@@ -42,7 +42,7 @@
     "@knisterpeter/standard-tslint": "1.0.3",
     "@types/chai": "3.4.34",
     "@types/mocha": "2.2.35",
-    "@types/node": "6.0.55",
+    "@types/node": "6.0.56",
     "chai": "3.5.0",
     "conventional-changelog-cli": "1.2.0",
     "coveralls": "2.11.15",
