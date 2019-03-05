@@ -1,3 +1,4 @@
+// tslint:disable-next-line:no-implicit-dependencies
 import { assert } from 'chai';
 import { join } from 'path';
 import { ID3v2 } from '../src/index';
@@ -27,16 +28,23 @@ describe('An id3v2 tag', () => {
       assert.equal(tag.title, 'title');
       assert.equal(tag.year, '2000');
       assert.equal(tag.artist, 'artist');
-      assert.deepEqual(tag.text, [{
+      assert.deepEqual(tag.text, [
+        {
           description: 'descr',
           value: 'value'
-        }, {
+        },
+        {
           description: 'descr2',
           value: 'value2'
-        }]);
+        }
+      ]);
       assert.equal(tag.set, '1');
       assert.equal(tag.length, '12345');
-      assert.deepEqual(tag.popularimeter, {email: 'id', rating: 64, counter: undefined});
+      assert.deepEqual(tag.popularimeter, {
+        email: 'id',
+        rating: 64,
+        counter: undefined
+      });
     });
   });
 });
