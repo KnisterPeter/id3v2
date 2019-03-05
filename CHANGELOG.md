@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.0.1](https://github.com/KnisterPeter/id3v2/compare/v2.0.0...v1.0.1) (2019-03-05)
+
+
+### Bug Fixes
+
+* add missing node types ([c080e2c](https://github.com/KnisterPeter/id3v2/commit/c080e2c))
+
+
+
 # [1.0.0](https://github.com/KnisterPeter/id3v2/compare/v0.2.2...v1.0.0) (2019-03-05)
 
 
