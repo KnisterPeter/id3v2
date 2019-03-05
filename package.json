@@ -23,7 +23,7 @@
     "postrelease": "git push --follow-tags origin master && yarn publish",
     "prepublish": "not-in-install && yarn build || echo 'In install cycle, skipping prepublish'",
     "precoverage": "yarn clean && tsc --inlineSourceMap && cp test/*.mp3 dist/test/",
-    "coverage": "nyc --reporter lcov ./node_modules/.bin/mocha --recursive dist/test --all"
+    "coverage": "nyc --reporter lcov ./node_modules/.bin/mocha --recursive dist/test --all && codecov"
   },
   "repository": {
     "type": "git",
@@ -44,8 +44,8 @@
     "@types/mocha": "5.2.6",
     "@types/node": "11.10.4",
     "chai": "4.2.0",
+    "codecov": "3.2.0",
     "conventional-changelog-cli": "2.0.12",
-    "coveralls": "3.0.3",
     "cz-conventional-changelog": "2.1.0",
     "in-publish": "2.0.0",
     "mocha": "6.0.2",
@@ -77,5 +77,22 @@
   },
   "prettier": {
     "singleQuote": true
+  },
+  "renovate": {
+    "extends": [
+      "config:base"
+    ],
+    "semanticPrefix": "chore:",
+    "lockFileMaintenance": {
+      "enabled": true
+    },
+    "packageRules": [
+      {
+        "packagePatterns": [
+          "^@types/"
+        ],
+        "automerge": true
+      }
+    ]
   }
 }

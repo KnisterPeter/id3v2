@@ -1,11 +1,11 @@
 sudo: false
 language: node_js
 node_js:
-- 'stable'
-- '10'
-- '8'
-- '6'
-- '4'
+  - 'stable'
+  - '10'
+  - '8'
+  - '6'
+  - '4'
 matrix:
   fast_finish: true
 branches:
@@ -13,10 +13,10 @@ branches:
     - master
 cache:
   directories:
-  - node_modules
+    - node_modules
 notifications:
   email:
     on_success: never
 before_script: 'yarn linter'
 script: 'yarn test'
-after_script: 'yarn coverage && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls'
+after_script: 'yarn coverage'
