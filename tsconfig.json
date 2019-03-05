@@ -5,7 +5,8 @@
     "outDir": "dist",
     "noImplicitAny": true,
     "experimentalDecorators": true,
-    "declaration": true
+    "declaration": true,
+    "strict": true,
   },
   "exclude": [
     "node_modules",

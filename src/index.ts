@@ -5,15 +5,88 @@ import * as iconv from 'iconv-lite';
  * Reading of ID3 tag based on http://id3.org/
  */
 
-const ID3v1Genres = ['Blues', 'Classic Rock', 'Country', 'Dance', 'Disco', 'Funk', 'Grunge', 'Hip-Hop', 'Jazz', 'Metal',
-  'New Age', 'Oldies', 'Other', 'Pop', 'Rhythm and Blues', 'Rap', 'Reggae', 'Rock', 'Techno', 'Industrial',
-  'Alternative', 'Ska', 'Death Metal', 'Pranks', 'Soundtrack', 'Euro-Techno', 'Ambient', 'Trip-Hop', 'Vocal',
-  'Jazz & Funk', 'Fusion', 'Trance', 'Classical', 'Instrumental', 'Acid', 'House', 'Game', 'Sound Clip', 'Gospel',
-  'Noise', 'Alternative Rock', 'Bass', 'Soul', 'Punk', 'Space', 'Meditative', 'Instrumental Pop', 'Instrumental Rock',
-  'Ethnic', 'Gothic', 'Darkwave', 'Techno-Industrial', 'Electronic', 'Pop-Folk', 'Eurodance', 'Dream', 'Southern Rock',
-  'Comedy', 'Cult', 'Gangsta', 'Top 40', 'Christian Rap', 'Pop/Funk', 'Jungle', 'Native US', 'Cabaret', 'New Wave',
-  'Psychedelic', 'Rave', 'Showtunes', 'Trailer', 'Lo-Fi', 'Tribal', 'Acid Punk', 'Acid Jazz', 'Polka', 'Retro',
-  'Musical', 'Rock ’n’ Roll', 'Hard Rock'];
+const ID3v1Genres = [
+  'Blues',
+  'Classic Rock',
+  'Country',
+  'Dance',
+  'Disco',
+  'Funk',
+  'Grunge',
+  'Hip-Hop',
+  'Jazz',
+  'Metal',
+  'New Age',
+  'Oldies',
+  'Other',
+  'Pop',
+  'Rhythm and Blues',
+  'Rap',
+  'Reggae',
+  'Rock',
+  'Techno',
+  'Industrial',
+  'Alternative',
+  'Ska',
+  'Death Metal',
+  'Pranks',
+  'Soundtrack',
+  'Euro-Techno',
+  'Ambient',
+  'Trip-Hop',
+  'Vocal',
+  'Jazz & Funk',
+  'Fusion',
+  'Trance',
+  'Classical',
+  'Instrumental',
+  'Acid',
+  'House',
+  'Game',
+  'Sound Clip',
+  'Gospel',
+  'Noise',
+  'Alternative Rock',
+  'Bass',
+  'Soul',
+  'Punk',
+  'Space',
+  'Meditative',
+  'Instrumental Pop',
+  'Instrumental Rock',
+  'Ethnic',
+  'Gothic',
+  'Darkwave',
+  'Techno-Industrial',
+  'Electronic',
+  'Pop-Folk',
+  'Eurodance',
+  'Dream',
+  'Southern Rock',
+  'Comedy',
+  'Cult',
+  'Gangsta',
+  'Top 40',
+  'Christian Rap',
+  'Pop/Funk',
+  'Jungle',
+  'Native US',
+  'Cabaret',
+  'New Wave',
+  'Psychedelic',
+  'Rave',
+  'Showtunes',
+  'Trailer',
+  'Lo-Fi',
+  'Tribal',
+  'Acid Punk',
+  'Acid Jazz',
+  'Polka',
+  'Retro',
+  'Musical',
+  'Rock ’n’ Roll',
+  'Hard Rock'
+];
 
 enum ID3HeaderOffsets {
   MAGIC = 0,
@@ -26,10 +99,10 @@ enum ID3HeaderOffsets {
 
 enum ID3HeaderFlags {
   Unsynchronisation = 128, // 10000000
-  Extended = 64,           // 01000000
-  Experimental = 32,       // 00100000
-  Footer = 16,             // 00010000
-  Others = 15              // 00001111
+  Extended = 64, // 01000000
+  Experimental = 32, // 00100000
+  Footer = 16, // 00010000
+  Others = 15 // 00001111
 }
 
 enum ID3ExtendedHeaderOffsets {
@@ -47,19 +120,26 @@ enum ID3FrameOffsets {
 }
 
 enum ID3FrameFlags {
-  Grouping = 64,          // 00000000 01000000
-  Compression = 8,        // 00000000 00001000
-  Encryption = 4,         // 00000000 00000100
-  Unsynchronisation = 2,  // 00000000 00000010
+  Grouping = 64, // 00000000 01000000
+  Compression = 8, // 00000000 00001000
+  Encryption = 4, // 00000000 00000100
+  Unsynchronisation = 2, // 00000000 00000010
   DataLengthIndicator = 1 // 00000000 00000001
 }
 
 const hasFlag = (flags: number, flag: number) => (flags & flag) === flag;
 const unsyncedLength = (input: number) =>
-  (input & 127) + ((input & (127 << 8)) >> 1) + ((input & (127 << 16)) >> 1) + ((input & (127 << 24)) >>> 1);
+  (input & 127) +
+  ((input & (127 << 8)) >> 1) +
+  ((input & (127 << 16)) >> 1) +
+  ((input & (127 << 24)) >>> 1);
 
-const isID3 = (buffer: Buffer) => buffer.slice(ID3HeaderOffsets.MAGIC, ID3HeaderOffsets.MAGIC + 3).toString() === 'ID3';
-const isID3v24 = (buffer: Buffer) => buffer.readIntBE(ID3HeaderOffsets.MAJOR_VERSION, 1) <= 4;
+const isID3 = (buffer: Buffer) =>
+  buffer
+    .slice(ID3HeaderOffsets.MAGIC, ID3HeaderOffsets.MAGIC + 3)
+    .toString() === 'ID3';
+const isID3v24 = (buffer: Buffer) =>
+  buffer.readIntBE(ID3HeaderOffsets.MAJOR_VERSION, 1) <= 4;
 const getID3HeaderFlags = (buffer: Buffer): HeaderFlags => {
   const flags = buffer.readIntBE(ID3HeaderOffsets.FLAGS, 1);
   return {
@@ -85,32 +165,42 @@ const getID3FrameFlags = (buffer: Buffer) => {
 
 // tslint:disable-next-line cyclomatic-complexity
 const getFrameData = (buffer: Buffer) => {
-  const name = buffer.slice(ID3FrameOffsets.ID, ID3FrameOffsets.ID + 4).toString();
+  const name = buffer
+    .slice(ID3FrameOffsets.ID, ID3FrameOffsets.ID + 4)
+    .toString();
   const length = unsyncedLength(buffer.readInt32BE(ID3FrameOffsets.SIZE));
-  let encoding: string;
-  switch (buffer.readInt8(ID3FrameOffsets.END_OF_HEADER)) {
-    case 0:
-      encoding = 'ISO-8859-1';
-      break;
-    case 1:
-      encoding = 'UTF-16';
-      break;
-    case 2:
-      encoding = 'UTF-16';
-      break;
-    case 3:
-      encoding = 'UTF-8';
-      break;
-  }
+  const encoding = (() => {
+    const value = buffer.readInt8(ID3FrameOffsets.END_OF_HEADER);
+    switch (value) {
+      case 0:
+        return 'ISO-8859-1';
+      case 1:
+        return 'UTF-16';
+      case 2:
+        return 'UTF-16';
+      case 3:
+        return 'UTF-8';
+    }
+    return '';
+  })();
   let data: any;
   switch (name) {
-    case 'TXXX': {
+    case 'TXXX':
+      {
         const idx = buffer.indexOf(0, ID3FrameOffsets.END_OF_HEADER + 1);
-        const description = iconv.decode(buffer.slice(ID3FrameOffsets.END_OF_HEADER + 1, idx), encoding);
+        const description = iconv.decode(
+          buffer.slice(ID3FrameOffsets.END_OF_HEADER + 1, idx),
+          encoding
+        );
         data = {
           description,
-          value: iconv.decode(buffer.slice(ID3FrameOffsets.END_OF_HEADER + 1 + description.length + 1,
-            ID3FrameOffsets.END_OF_HEADER + length), encoding)
+          value: iconv.decode(
+            buffer.slice(
+              ID3FrameOffsets.END_OF_HEADER + 1 + description.length + 1,
+              ID3FrameOffsets.END_OF_HEADER + length
+            ),
+            encoding
+          )
         };
       }
       break;
@@ -125,12 +215,20 @@ const getFrameData = (buffer: Buffer) => {
     case 'TDRC':
     case 'TPE1':
     case 'TPE2':
-      data =
-        iconv.decode(buffer.slice(ID3FrameOffsets.END_OF_HEADER + 1, ID3FrameOffsets.END_OF_HEADER + length), encoding);
+      data = iconv.decode(
+        buffer.slice(
+          ID3FrameOffsets.END_OF_HEADER + 1,
+          ID3FrameOffsets.END_OF_HEADER + length
+        ),
+        encoding
+      );
       break;
-    case 'POPM': {
+    case 'POPM':
+      {
         const idx = buffer.indexOf(0, ID3FrameOffsets.END_OF_HEADER);
-        const email = buffer.slice(ID3FrameOffsets.END_OF_HEADER, idx).toString();
+        const email = buffer
+          .slice(ID3FrameOffsets.END_OF_HEADER, idx)
+          .toString();
         const rating = buffer.readUInt8(idx + 1);
         // TODO: counter
         data = {
@@ -140,12 +238,18 @@ const getFrameData = (buffer: Buffer) => {
         };
       }
       break;
-    case 'UFID': {
+    case 'UFID':
+      {
         const idx = buffer.indexOf(0, ID3FrameOffsets.END_OF_HEADER);
-        const ownerIdentifier = buffer.slice(ID3FrameOffsets.END_OF_HEADER, idx).toString();
+        const ownerIdentifier = buffer
+          .slice(ID3FrameOffsets.END_OF_HEADER, idx)
+          .toString();
         data = {
           ownerIdentifier,
-          identifier: buffer.slice(ID3FrameOffsets.END_OF_HEADER + ownerIdentifier.length, length)
+          identifier: buffer.slice(
+            ID3FrameOffsets.END_OF_HEADER + ownerIdentifier.length,
+            length
+          )
         };
       }
       break;
@@ -180,10 +284,9 @@ interface FrameData {
 }
 
 export class ID3v2 {
+  private readonly flags?: HeaderFlags;
 
-  private flags: HeaderFlags;
-
-  private frames: {[name: string]: FrameData|FrameData[]} = {};
+  private readonly frames: { [name: string]: FrameData | FrameData[] } = {};
 
   // tslint:disable-next-line cyclomatic-complexity
   constructor(path: string) {
@@ -199,7 +302,9 @@ export class ID3v2 {
     let startOfFrame = ID3HeaderOffsets.END_OF_HEADER;
     if (this.flags.extendedHeader) {
       const extendedHeaderBuffer = buffer.slice(ID3HeaderOffsets.END_OF_HEADER);
-      const extendedHeaderSize = unsyncedLength(extendedHeaderBuffer.readInt32BE(ID3ExtendedHeaderOffsets.SIZE));
+      const extendedHeaderSize = unsyncedLength(
+        extendedHeaderBuffer.readInt32BE(ID3ExtendedHeaderOffsets.SIZE)
+      );
       startOfFrame += extendedHeaderSize;
     }
 
@@ -224,12 +329,12 @@ export class ID3v2 {
   private getFrameData(name: string): any {
     const frame = this.frames[name];
     if (Array.isArray(frame)) {
-      return (frame as FrameData[]).map(entry => entry.data);
+      return frame.map(entry => entry.data);
     }
-    return frame ? (frame as FrameData).data : undefined;
+    return frame ? frame.data : undefined;
   }
 
-  get ufid(): {ownerIdentifier: string, identifier: Buffer} {
+  get ufid(): { ownerIdentifier: string; identifier: Buffer } {
     return this.getFrameData('UFID');
   }
 
@@ -264,7 +369,7 @@ export class ID3v2 {
     return this.getFrameData('TPE1');
   }
 
-  get popularimeter(): {email: string, rating: number, counter: number} {
+  get popularimeter(): { email: string; rating: number; counter?: number } {
     return this.getFrameData('POPM');
   }
 
@@ -276,8 +381,9 @@ export class ID3v2 {
     return this.getFrameData('TPOS');
   }
 
-  get text(): {description: string, value: string}|{description: string, value: string}[] {
+  get text():
+    | { description: string; value: string }
+    | { description: string; value: string }[] {
     return this.getFrameData('TXXX');
   }
-
 }
