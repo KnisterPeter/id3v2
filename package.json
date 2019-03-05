@@ -1,6 +1,6 @@
 {
   "name": "id3v2",
-  "version": "2.0.0",
+  "version": "1.0.0",
   "description": "Reads ID3v2 metadata",
   "main": "dist/src/index.js",
   "files": [
@@ -20,7 +20,7 @@
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -w",
     "prerelease": "yarn test && yarn build",
     "release": "standard-version",
-    "postrelease": "git push --follow-tags origin master && yarn publish",
+    "postrelease": "git push --follow-tags origin master && npm publish",
     "prepublish": "not-in-install && yarn build || echo 'In install cycle, skipping prepublish'",
     "precoverage": "yarn clean && tsc --inlineSourceMap && cp test/*.mp3 dist/test/",
     "coverage": "nyc --reporter lcov ./node_modules/.bin/mocha --recursive dist/test --all && codecov"
