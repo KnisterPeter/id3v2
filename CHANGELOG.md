@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [1.0.0](https://github.com/KnisterPeter/id3v2/compare/v0.2.2...v1.0.0) (2019-03-05)
+
+
+### chore
+
+* drop support for node 4 ([915bfed](https://github.com/KnisterPeter/id3v2/commit/915bfed))
+
+
+### BREAKING CHANGES
+
+* drop support for node 4
+
+
+
 <a name="0.2.2"></a>
 ## [0.2.2](https://github.com/knisterpeter/id3v2/compare/v0.2.1...v0.2.2) (2016-09-23)
 
