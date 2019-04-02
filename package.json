@@ -57,7 +57,7 @@
     "typescript": "3.4.1"
   },
   "dependencies": {
-    "@types/node": "11.12.2",
+    "@types/node": "11.13.0",
     "iconv-lite": "0.4.24"
   },
   "publishConfig": {
