@@ -43,7 +43,7 @@
     "@types/chai": "4.2.7",
     "@types/mocha": "5.2.7",
     "chai": "4.2.0",
-    "codecov": "3.6.1",
+    "codecov": "3.6.2",
     "conventional-changelog-cli": "2.0.31",
     "cz-conventional-changelog": "3.0.2",
     "in-publish": "2.0.0",
